@@ -9,6 +9,10 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
 
+// New imports
+import Businesses from "./pages/Businesses";
+import BusinessDetail from "./pages/BusinessDetail";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -22,6 +26,11 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/dashboard" element={<Dashboard />} />
+
+            {/* Businesses pages */}
+            <Route path="/businesses" element={<Businesses />} />
+            <Route path="/businesses/:id" element={<BusinessDetail />} />
+
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
