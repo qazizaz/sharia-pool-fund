@@ -7,11 +7,10 @@ import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
-import NotFound from "./pages/NotFound";
-
-// New imports
+import About from "./pages/About";
 import Businesses from "./pages/Businesses";
 import BusinessDetail from "./pages/BusinessDetail";
+import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
@@ -24,13 +23,11 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/about" element={<About />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/dashboard" element={<Dashboard />} />
-
-            {/* Businesses pages */}
             <Route path="/businesses" element={<Businesses />} />
             <Route path="/businesses/:id" element={<BusinessDetail />} />
-
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
