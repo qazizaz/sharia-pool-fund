@@ -3,12 +3,9 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Shield, Menu, X } from "lucide-react";
 import { APP_NAME } from "@/lib/constants";
-
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
-
-  return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
+  return <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
       <div className="container">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -24,12 +21,8 @@ export function Navbar() {
             <Link to="/businesses" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               Businesses
             </Link>
-            <Link to="/about" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              About
-            </Link>
-            <Link to="/how-it-works" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              How It Works
-            </Link>
+            
+            
           </div>
           
           {/* Desktop Auth Buttons */}
@@ -43,37 +36,21 @@ export function Navbar() {
           </div>
           
           {/* Mobile Menu Button */}
-          <button 
-            className="md:hidden p-2"
-            onClick={() => setIsOpen(!isOpen)}
-          >
+          <button className="md:hidden p-2" onClick={() => setIsOpen(!isOpen)}>
             {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
         </div>
         
         {/* Mobile Menu */}
-        {isOpen && (
-          <div className="md:hidden py-4 border-t border-border animate-slide-up">
+        {isOpen && <div className="md:hidden py-4 border-t border-border animate-slide-up">
             <div className="flex flex-col gap-4">
-              <Link 
-                to="/businesses" 
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                onClick={() => setIsOpen(false)}
-              >
+              <Link to="/businesses" className="text-sm text-muted-foreground hover:text-foreground transition-colors" onClick={() => setIsOpen(false)}>
                 Businesses
               </Link>
-              <Link 
-                to="/about" 
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                onClick={() => setIsOpen(false)}
-              >
+              <Link to="/about" className="text-sm text-muted-foreground hover:text-foreground transition-colors" onClick={() => setIsOpen(false)}>
                 About
               </Link>
-              <Link 
-                to="/how-it-works" 
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                onClick={() => setIsOpen(false)}
-              >
+              <Link to="/how-it-works" className="text-sm text-muted-foreground hover:text-foreground transition-colors" onClick={() => setIsOpen(false)}>
                 How It Works
               </Link>
               <div className="pt-4 border-t border-border flex flex-col gap-2">
@@ -85,9 +62,7 @@ export function Navbar() {
                 </Link>
               </div>
             </div>
-          </div>
-        )}
+          </div>}
       </div>
-    </nav>
-  );
+    </nav>;
 }
