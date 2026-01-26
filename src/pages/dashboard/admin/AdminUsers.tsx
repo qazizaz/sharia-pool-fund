@@ -173,18 +173,36 @@ export default function AdminUsers() {
                   </div>
 
                   <div className="flex flex-wrap items-center gap-3">
-                    {/* KYC Status */}
+                    {/* KYC Status with Full Control */}
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-muted-foreground">KYC:</span>
-                      <Badge 
-                        variant={
-                          u.kyc_status === "verified" ? "default" : 
-                          u.kyc_status === "rejected" ? "destructive" : "secondary"
-                        }
-                        className="capitalize"
+                      <Select 
+                        value={u.kyc_status} 
+                        onValueChange={(status) => updateKycMutation.mutate({ 
+                          userId: u.user_id, 
+                          status: status as "pending" | "submitted" | "verified" | "rejected" 
+                        })}
                       >
-                        {u.kyc_status}
-                      </Badge>
+                        <SelectTrigger className="w-32 h-8">
+                          <Badge 
+                            variant={
+                              u.kyc_status === "verified" ? "default" : 
+                              u.kyc_status === "rejected" ? "destructive" : 
+                              u.kyc_status === "submitted" ? "secondary" : "outline"
+                            }
+                            className="capitalize"
+                          >
+                            {u.kyc_status}
+                          </Badge>
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pending">Pending</SelectItem>
+                          <SelectItem value="submitted">Submitted</SelectItem>
+                          <SelectItem value="verified">Verified</SelectItem>
+                          <SelectItem value="rejected">Rejected</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {/* Quick Actions for Submitted Status */}
                       {u.kyc_status === "submitted" && (
                         <div className="flex gap-1">
                           <Button 
@@ -192,6 +210,7 @@ export default function AdminUsers() {
                             variant="ghost" 
                             className="h-7 w-7 text-success"
                             onClick={() => updateKycMutation.mutate({ userId: u.user_id, status: "verified" })}
+                            title="Approve KYC"
                           >
                             <UserCheck className="w-4 h-4" />
                           </Button>
@@ -200,10 +219,23 @@ export default function AdminUsers() {
                             variant="ghost" 
                             className="h-7 w-7 text-destructive"
                             onClick={() => updateKycMutation.mutate({ userId: u.user_id, status: "rejected" })}
+                            title="Reject KYC"
                           >
                             <UserX className="w-4 h-4" />
                           </Button>
                         </div>
+                      )}
+                      {/* Quick Verify for Pending Status */}
+                      {u.kyc_status === "pending" && (
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="h-7 text-xs"
+                          onClick={() => updateKycMutation.mutate({ userId: u.user_id, status: "verified" })}
+                        >
+                          <UserCheck className="w-3 h-3 mr-1" />
+                          Verify
+                        </Button>
                       )}
                     </div>
 

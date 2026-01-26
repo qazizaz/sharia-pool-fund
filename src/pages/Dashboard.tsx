@@ -1,11 +1,14 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Wallet, TrendingUp, FileText, Shield } from "lucide-react";
-import { formatCurrency } from "@/lib/constants";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Wallet, TrendingUp, FileText, Shield, Building2 } from "lucide-react";
+import { formatCurrency, formatNumber } from "@/lib/constants";
 import { Link } from "react-router-dom";
 
 export default function Dashboard() {
@@ -18,6 +21,69 @@ export default function Dashboard() {
     }
   }, [user, loading, navigate]);
 
+  // Fetch wallet and balance
+  const { data: walletData, isLoading: walletLoading } = useQuery({
+    queryKey: ["dashboard-wallet", user?.id],
+    queryFn: async () => {
+      // Get wallet
+      const { data: wallet, error: walletError } = await supabase
+        .from("wallets")
+        .select("id")
+        .eq("user_id", user!.id)
+        .is("deleted_at", null)
+        .single();
+
+      if (walletError) throw walletError;
+
+      // Get balance using RPC function
+      const { data: balance } = await supabase.rpc("get_wallet_balance", {
+        _wallet_id: wallet.id
+      });
+
+      return { wallet, balance: Number(balance) || 0 };
+    },
+    enabled: !!user,
+  });
+
+  // Fetch investments summary
+  const { data: investmentData, isLoading: investmentLoading } = useQuery({
+    queryKey: ["dashboard-investments", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("investments")
+        .select("units, total_amount, status")
+        .eq("investor_user_id", user!.id)
+        .is("deleted_at", null);
+
+      if (error) throw error;
+
+      const totalInvested = data.reduce((sum, inv) => sum + Number(inv.total_amount), 0);
+      const activeUnits = data
+        .filter(inv => inv.status === "active")
+        .reduce((sum, inv) => sum + inv.units, 0);
+
+      return { totalInvested, activeUnits, investmentCount: data.length };
+    },
+    enabled: !!user,
+  });
+
+  // Fetch profit distributions for the user
+  const { data: profitData, isLoading: profitLoading } = useQuery({
+    queryKey: ["dashboard-profits", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profit_distribution_entries")
+        .select("amount")
+        .eq("investor_user_id", user!.id);
+
+      if (error) throw error;
+
+      const totalProfit = data.reduce((sum, entry) => sum + Number(entry.amount), 0);
+      return { totalProfit };
+    },
+    enabled: !!user,
+  });
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -29,8 +95,9 @@ export default function Dashboard() {
   if (!user) return null;
 
   const roleLabel = userRole?.role?.replace("_", " ") || "Investor";
-  const kycStatus = profile?.kyc_status || "Pending";
+  const kycStatus = profile?.kyc_status || "pending";
   const isKycVerified = profile?.kyc_status === "verified";
+  const isDataLoading = walletLoading || investmentLoading || profitLoading;
 
   return (
     <DashboardLayout 
@@ -39,10 +106,21 @@ export default function Dashboard() {
     >
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <StatCard icon={<Wallet />} label="Wallet Balance" value={formatCurrency(0)} />
-        <StatCard icon={<TrendingUp />} label="Total Invested" value={formatCurrency(0)} />
-        <StatCard icon={<FileText />} label="Active Units" value="0" />
-        <StatCard icon={<TrendingUp />} label="Total Profit" value={formatCurrency(0)} />
+        {isDataLoading ? (
+          <>
+            <Skeleton className="h-28 w-full" />
+            <Skeleton className="h-28 w-full" />
+            <Skeleton className="h-28 w-full" />
+            <Skeleton className="h-28 w-full" />
+          </>
+        ) : (
+          <>
+            <StatCard icon={<Wallet />} label="Wallet Balance" value={formatCurrency(walletData?.balance || 0)} />
+            <StatCard icon={<TrendingUp />} label="Total Invested" value={formatCurrency(investmentData?.totalInvested || 0)} />
+            <StatCard icon={<Building2 />} label="Active Units" value={formatNumber(investmentData?.activeUnits || 0)} />
+            <StatCard icon={<TrendingUp />} label="Total Profit" value={formatCurrency(profitData?.totalProfit || 0)} />
+          </>
+        )}
       </div>
       
       {/* Quick Actions */}
