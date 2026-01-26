@@ -145,7 +145,7 @@ export default function MyBusiness() {
               <p className="text-muted-foreground mb-6">{business.description || "No description"}</p>
               
               {/* Stats */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                 <div className="p-4 rounded-lg bg-muted">
                   <div className="flex items-center gap-2 mb-1">
                     <TrendingUp className="w-4 h-4 text-primary" />
@@ -162,10 +162,17 @@ export default function MyBusiness() {
                 </div>
                 <div className="p-4 rounded-lg bg-muted">
                   <div className="flex items-center gap-2 mb-1">
-                    <Users className="w-4 h-4 text-primary" />
-                    <span className="text-sm text-muted-foreground">Total Raised</span>
+                    <Building2 className="w-4 h-4 text-primary" />
+                    <span className="text-sm text-muted-foreground">Units Available</span>
                   </div>
-                  <p className="text-xl font-bold">{formatCurrency(business.units_sold * business.unit_price)}</p>
+                  <p className="text-xl font-bold">{formatNumber(business.total_units_offered - business.units_sold)}</p>
+                </div>
+                <div className="p-4 rounded-lg bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Users className="w-4 h-4 text-primary" />
+                    <span className="text-sm text-muted-foreground">Total Raised (PKR)</span>
+                  </div>
+                  <p className="text-2xl font-bold text-primary">{formatCurrency(business.units_sold * business.unit_price)}</p>
                 </div>
               </div>
 
@@ -195,18 +202,32 @@ export default function MyBusiness() {
             </CardHeader>
             <CardContent>
               {investors && investors.length > 0 ? (
-                <div className="divide-y">
-                  {investors.map((inv: any) => (
-                    <div key={inv.id} className="py-3 flex items-center justify-between">
-                      <div>
-                        <p className="font-medium">{inv.profiles?.full_name || "Anonymous"}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {inv.units} units · {formatDate(inv.created_at)}
-                        </p>
-                      </div>
-                      <p className="font-semibold">{formatCurrency(inv.total_amount)}</p>
+                <div className="space-y-4">
+                  {/* Summary */}
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                    <span className="text-sm text-muted-foreground">Total Investors</span>
+                    <span className="font-bold">{investors.length}</span>
+                  </div>
+                  
+                  {/* Investor List */}
+                  <div className="divide-y rounded-lg border">
+                    <div className="grid grid-cols-4 gap-4 p-3 bg-muted/30 text-sm font-medium text-muted-foreground">
+                      <span>Investor Name</span>
+                      <span className="text-center">Units Bought</span>
+                      <span className="text-center">Investment Date</span>
+                      <span className="text-right">Amount (PKR)</span>
                     </div>
-                  ))}
+                    {investors.map((inv: any) => (
+                      <div key={inv.id} className="grid grid-cols-4 gap-4 p-3 items-center hover:bg-muted/20 transition-colors">
+                        <div>
+                          <p className="font-medium">{inv.profiles?.full_name || "Anonymous Investor"}</p>
+                        </div>
+                        <p className="text-center font-semibold text-primary">{formatNumber(inv.units)}</p>
+                        <p className="text-center text-sm text-muted-foreground">{formatDate(inv.created_at)}</p>
+                        <p className="text-right font-bold text-success">{formatCurrency(inv.total_amount)}</p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               ) : (
                 <p className="text-muted-foreground text-center py-8">No investors yet</p>

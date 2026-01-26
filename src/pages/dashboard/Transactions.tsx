@@ -109,6 +109,7 @@ export default function Transactions() {
                 const config = entryTypeConfig[transaction.entry_type as LedgerEntryType];
                 const Icon = config?.icon || FileText;
                 const isPositive = Number(transaction.amount) > 0;
+                const transactionType = isPositive ? "Credit" : "Debit";
 
                 return (
                   <div 
@@ -121,8 +122,11 @@ export default function Transactions() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <p className="font-medium">{config?.label || transaction.entry_type}</p>
-                        <Badge variant="outline" className="text-xs capitalize">
-                          {transaction.entry_type.replace("_", " ")}
+                        <Badge 
+                          variant={isPositive ? "default" : "destructive"} 
+                          className="text-xs"
+                        >
+                          {transactionType}
                         </Badge>
                       </div>
                       <p className="text-sm text-muted-foreground truncate">{transaction.description}</p>
@@ -132,6 +136,7 @@ export default function Transactions() {
                       <p className={`font-semibold ${isPositive ? "text-success" : "text-destructive"}`}>
                         {isPositive ? "+" : ""}{formatCurrency(transaction.amount)}
                       </p>
+                      <p className="text-xs text-muted-foreground">{transactionType}</p>
                     </div>
                   </div>
                 );
