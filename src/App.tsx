@@ -23,6 +23,7 @@ import MyBusiness from "./pages/dashboard/MyBusiness";
 import AdminUsers from "./pages/dashboard/admin/AdminUsers";
 import AdminBusinesses from "./pages/dashboard/admin/AdminBusinesses";
 import AdminSettings from "./pages/dashboard/admin/AdminSettings";
+import AdminFunds from "./pages/dashboard/admin/AdminFunds";
 
 const queryClient = new QueryClient();
 
@@ -50,6 +51,7 @@ const App = () => (
             {/* Admin Routes */}
             <Route path="/dashboard/admin/users" element={<AdminUsers />} />
             <Route path="/dashboard/admin/businesses" element={<AdminBusinesses />} />
+            <Route path="/dashboard/admin/funds" element={<AdminFunds />} />
             <Route path="/dashboard/admin/settings" element={<AdminSettings />} />
 
             {/* 404 */}
