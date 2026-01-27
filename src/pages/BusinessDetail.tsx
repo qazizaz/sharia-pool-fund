@@ -40,6 +40,28 @@ export default function BusinessDetail() {
   const [units, setUnits] = useState(1);
   const [isInvesting, setIsInvesting] = useState(false);
 
+  // Fetch user wallet balance
+  const { data: walletBalance = 0 } = useQuery({
+    queryKey: ["wallet-balance", user?.id],
+    queryFn: async () => {
+      const { data: wallet } = await supabase
+        .from("wallets")
+        .select("id")
+        .eq("user_id", user!.id)
+        .is("deleted_at", null)
+        .single();
+
+      if (!wallet) return 0;
+
+      const { data: balance } = await supabase.rpc("get_wallet_balance", {
+        _wallet_id: wallet.id,
+      });
+
+      return Number(balance) || 0;
+    },
+    enabled: !!user,
+  });
+
   const { data: business, isLoading, error } = useQuery({
     queryKey: ["business", id],
     queryFn: async () => {
@@ -63,6 +85,9 @@ export default function BusinessDetail() {
     ? (business.units_sold / business.total_units_offered) * 100 
     : 0;
 
+  const totalCost = business ? units * business.unit_price : 0;
+  const hasInsufficientBalance = totalCost > walletBalance;
+
   const handleInvest = async () => {
     if (!user || !business) return;
 
@@ -78,36 +103,38 @@ export default function BusinessDetail() {
 
     setIsInvesting(true);
     try {
-      const totalAmount = units * business.unit_price;
+      // Get current session for authorization
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error("Please sign in to invest");
+        return;
+      }
 
-      // Create the investment record
-      const { error: investError } = await supabase
-        .from("investments")
-        .insert({
-          investor_user_id: user.id,
+      // Call atomic investment edge function
+      const response = await supabase.functions.invoke("process-investment", {
+        body: {
           business_profile_id: business.id,
           units: units,
-          unit_price: business.unit_price,
-          total_amount: totalAmount,
-          status: "active",
-        });
+        },
+      });
 
-      if (investError) throw investError;
+      if (response.error) {
+        throw new Error(response.error.message || "Investment failed");
+      }
 
-      // Update business units_sold
-      const { error: updateError } = await supabase
-        .from("business_profiles")
-        .update({ units_sold: business.units_sold + units })
-        .eq("id", business.id);
+      const result = response.data;
+      
+      if (!result.success) {
+        throw new Error(result.error || "Investment failed");
+      }
 
-      if (updateError) throw updateError;
-
-      toast.success(`Successfully invested in ${business.business_name}!`);
+      toast.success(`Successfully invested ${units} units in ${business.business_name}!`);
       setInvestDialogOpen(false);
       navigate("/dashboard");
-    } catch (err) {
+    } catch (err: any) {
       console.error("Investment error:", err);
-      toast.error("Failed to complete investment. Please try again.");
+      const errorMessage = err.message || "Failed to complete investment. Please try again.";
+      toast.error(errorMessage);
     } finally {
       setIsInvesting(false);
     }
@@ -311,6 +338,14 @@ export default function BusinessDetail() {
                               </p>
                             </div>
 
+                            {/* Wallet Balance Display */}
+                            <div className="bg-primary/10 p-4 rounded-lg border border-primary/20">
+                              <div className="flex justify-between items-center">
+                                <span className="text-sm font-medium">Your Wallet Balance</span>
+                                <span className="font-bold text-primary">{formatCurrency(walletBalance)}</span>
+                              </div>
+                            </div>
+
                             <div className="bg-muted p-4 rounded-lg">
                               <div className="flex justify-between mb-2">
                                 <span className="text-muted-foreground">Units</span>
@@ -322,9 +357,22 @@ export default function BusinessDetail() {
                               </div>
                               <div className="flex justify-between font-bold border-t border-border pt-2">
                                 <span>Total Amount</span>
-                                <span className="text-primary">{formatCurrency(units * business.unit_price)}</span>
+                                <span className={totalCost > walletBalance ? "text-destructive" : "text-primary"}>
+                                  {formatCurrency(totalCost)}
+                                </span>
                               </div>
                             </div>
+
+                            {/* Insufficient Balance Warning */}
+                            {totalCost > walletBalance && (
+                              <div className="flex items-start gap-2 text-destructive bg-destructive/10 p-3 rounded-lg">
+                                <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                                <p className="text-sm">
+                                  Insufficient wallet balance. You need {formatCurrency(totalCost - walletBalance)} more to complete this investment.
+                                  <Link to="/dashboard" className="underline ml-1">Add funds</Link>
+                                </p>
+                              </div>
+                            )}
 
                             {profile?.kyc_status !== "verified" && (
                               <div className="flex items-start gap-2 text-warning bg-warning/10 p-3 rounded-lg">
@@ -344,7 +392,7 @@ export default function BusinessDetail() {
                             <Button 
                               variant="gradient" 
                               onClick={handleInvest}
-                              disabled={isInvesting || profile?.kyc_status !== "verified"}
+                              disabled={isInvesting || profile?.kyc_status !== "verified" || hasInsufficientBalance}
                             >
                               {isInvesting ? "Processing..." : "Confirm Investment"}
                             </Button>
