@@ -508,6 +508,19 @@ export type Database = {
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       is_business_owner: { Args: { _user_id: string }; Returns: boolean }
       is_investor: { Args: { _user_id: string }; Returns: boolean }
+      process_investment_atomic: {
+        Args: {
+          p_business_name: string
+          p_business_profile_id: string
+          p_current_units_sold: number
+          p_investor_user_id: string
+          p_total_amount: number
+          p_unit_price: number
+          p_units: number
+          p_wallet_id: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       app_role: "admin" | "business_owner" | "investor"
