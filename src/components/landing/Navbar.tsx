@@ -47,12 +47,8 @@ export function Navbar() {
               <Link to="/businesses" className="text-sm text-muted-foreground hover:text-foreground transition-colors" onClick={() => setIsOpen(false)}>
                 Businesses
               </Link>
-              <Link to="/about" className="text-sm text-muted-foreground hover:text-foreground transition-colors" onClick={() => setIsOpen(false)}>
-                About
-              </Link>
-              <Link to="/how-it-works" className="text-sm text-muted-foreground hover:text-foreground transition-colors" onClick={() => setIsOpen(false)}>
-                How It Works
-              </Link>
+              
+              
               <div className="pt-4 border-t border-border flex flex-col gap-2">
                 <Link to="/auth" onClick={() => setIsOpen(false)}>
                   <Button variant="outline" className="w-full">Sign In</Button>
