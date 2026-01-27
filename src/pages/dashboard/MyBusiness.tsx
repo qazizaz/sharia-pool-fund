@@ -61,14 +61,32 @@ export default function MyBusiness() {
   const { data: investors } = useQuery({
     queryKey: ["business-investors", business?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // First fetch investments
+      const { data: investmentsData, error: investmentsError } = await supabase
         .from("investments")
-        .select("*, profiles:investor_user_id(full_name)")
+        .select("*")
         .eq("business_profile_id", business!.id)
         .is("deleted_at", null);
 
-      if (error) throw error;
-      return data;
+      if (investmentsError) throw investmentsError;
+      if (!investmentsData || investmentsData.length === 0) return [];
+
+      // Get unique investor IDs
+      const investorIds = [...new Set(investmentsData.map(inv => inv.investor_user_id))];
+
+      // Fetch profiles for those investors
+      const { data: profilesData, error: profilesError } = await supabase
+        .from("profiles")
+        .select("user_id, full_name")
+        .in("user_id", investorIds);
+
+      if (profilesError) throw profilesError;
+
+      // Map profiles to investments
+      return investmentsData.map(inv => ({
+        ...inv,
+        investor_name: profilesData?.find(p => p.user_id === inv.investor_user_id)?.full_name || "Anonymous Investor"
+      }));
     },
     enabled: !!business,
   });
@@ -220,7 +238,7 @@ export default function MyBusiness() {
                     {investors.map((inv: any) => (
                       <div key={inv.id} className="grid grid-cols-4 gap-4 p-3 items-center hover:bg-muted/20 transition-colors">
                         <div>
-                          <p className="font-medium">{inv.profiles?.full_name || "Anonymous Investor"}</p>
+                          <p className="font-medium">{inv.investor_name}</p>
                         </div>
                         <p className="text-center font-semibold text-primary">{formatNumber(inv.units)}</p>
                         <p className="text-center text-sm text-muted-foreground">{formatDate(inv.created_at)}</p>
