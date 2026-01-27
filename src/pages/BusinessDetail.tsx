@@ -9,102 +9,82 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { 
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { 
-  ArrowLeft, 
-  Building2, 
-  TrendingUp, 
-  Users, 
-  Shield, 
-  Calendar,
-  AlertCircle
-} from "lucide-react";
+import { ArrowLeft, Building2, TrendingUp, Users, Shield, Calendar, AlertCircle } from "lucide-react";
 import { formatCurrency, formatNumber, formatDate, UNIT_PRICE } from "@/lib/constants";
 import { toast } from "sonner";
-
 export default function BusinessDetail() {
-  const { id } = useParams();
+  const {
+    id
+  } = useParams();
   const navigate = useNavigate();
-  const { user, profile } = useAuth();
+  const {
+    user,
+    profile
+  } = useAuth();
   const [investDialogOpen, setInvestDialogOpen] = useState(false);
   const [units, setUnits] = useState(1);
   const [isInvesting, setIsInvesting] = useState(false);
 
   // Fetch user wallet balance
-  const { data: walletBalance = 0 } = useQuery({
+  const {
+    data: walletBalance = 0
+  } = useQuery({
     queryKey: ["wallet-balance", user?.id],
     queryFn: async () => {
-      const { data: wallet } = await supabase
-        .from("wallets")
-        .select("id")
-        .eq("user_id", user!.id)
-        .is("deleted_at", null)
-        .single();
-
+      const {
+        data: wallet
+      } = await supabase.from("wallets").select("id").eq("user_id", user!.id).is("deleted_at", null).single();
       if (!wallet) return 0;
-
-      const { data: balance } = await supabase.rpc("get_wallet_balance", {
-        _wallet_id: wallet.id,
+      const {
+        data: balance
+      } = await supabase.rpc("get_wallet_balance", {
+        _wallet_id: wallet.id
       });
-
       return Number(balance) || 0;
     },
-    enabled: !!user,
+    enabled: !!user
   });
-
-  const { data: business, isLoading, error } = useQuery({
+  const {
+    data: business,
+    isLoading,
+    error
+  } = useQuery({
     queryKey: ["business", id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("business_profiles")
-        .select("*")
-        .eq("id", id)
-        .single();
-
+      const {
+        data,
+        error
+      } = await supabase.from("business_profiles").select("*").eq("id", id).single();
       if (error) throw error;
       return data;
     },
-    enabled: !!id,
+    enabled: !!id
   });
-
-  const availableUnits = business 
-    ? business.total_units_offered - business.units_sold 
-    : 0;
-
-  const fundingProgress = business && business.total_units_offered > 0 
-    ? (business.units_sold / business.total_units_offered) * 100 
-    : 0;
-
+  const availableUnits = business ? business.total_units_offered - business.units_sold : 0;
+  const fundingProgress = business && business.total_units_offered > 0 ? business.units_sold / business.total_units_offered * 100 : 0;
   const totalCost = business ? units * business.unit_price : 0;
   const hasInsufficientBalance = totalCost > walletBalance;
-
   const handleInvest = async () => {
     if (!user || !business) return;
-
     if (!profile || profile.kyc_status !== "verified") {
       toast.error("Please complete KYC verification before investing");
       return;
     }
-
     if (units < 1 || units > availableUnits) {
       toast.error(`Please select between 1 and ${availableUnits} units`);
       return;
     }
-
     setIsInvesting(true);
     try {
       // Get current session for authorization
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: {
+          session
+        }
+      } = await supabase.auth.getSession();
       if (!session) {
         toast.error("Please sign in to invest");
         return;
@@ -114,20 +94,16 @@ export default function BusinessDetail() {
       const response = await supabase.functions.invoke("process-investment", {
         body: {
           business_profile_id: business.id,
-          units: units,
-        },
+          units: units
+        }
       });
-
       if (response.error) {
         throw new Error(response.error.message || "Investment failed");
       }
-
       const result = response.data;
-      
       if (!result.success) {
         throw new Error(result.error || "Investment failed");
       }
-
       toast.success(`Successfully invested ${units} units in ${business.business_name}!`);
       setInvestDialogOpen(false);
       navigate("/dashboard");
@@ -139,10 +115,8 @@ export default function BusinessDetail() {
       setIsInvesting(false);
     }
   };
-
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex flex-col">
+    return <div className="min-h-screen flex flex-col">
         <Navbar />
         <main className="flex-1 container py-12">
           <div className="max-w-4xl mx-auto">
@@ -152,13 +126,10 @@ export default function BusinessDetail() {
           </div>
         </main>
         <Footer />
-      </div>
-    );
+      </div>;
   }
-
   if (error || !business) {
-    return (
-      <div className="min-h-screen flex flex-col">
+    return <div className="min-h-screen flex flex-col">
         <Navbar />
         <main className="flex-1 container py-12">
           <div className="max-w-4xl mx-auto text-center">
@@ -174,16 +145,13 @@ export default function BusinessDetail() {
           </div>
         </main>
         <Footer />
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="min-h-screen flex flex-col">
+  return <div className="min-h-screen flex flex-col">
       <Navbar />
 
-      <main className="flex-1 container py-12">
-        <div className="max-w-4xl mx-auto">
+      <main className="flex-1 container py-12 pt-[50px] pb-[50px]">
+        <div className="max-w-4xl mx-auto mb-0 pb-0 pt-[50px]">
           {/* Back Button */}
           <Button variant="ghost" onClick={() => navigate("/businesses")} className="mb-6">
             <ArrowLeft className="w-4 h-4 mr-2" />
@@ -195,9 +163,7 @@ export default function BusinessDetail() {
             <div className="flex items-start justify-between flex-wrap gap-4">
               <div>
                 <h1 className="text-3xl font-display font-bold mb-2">{business.business_name}</h1>
-                {business.sector && (
-                  <p className="text-muted-foreground uppercase tracking-wide text-sm">{business.sector}</p>
-                )}
+                {business.sector && <p className="text-muted-foreground uppercase tracking-wide text-sm">{business.sector}</p>}
               </div>
               <Badge variant={business.status === "funded" ? "secondary" : "default"} className="text-sm">
                 {business.status === "funded" ? "Fully Funded" : "Accepting Investment"}
@@ -222,8 +188,7 @@ export default function BusinessDetail() {
                 </CardContent>
               </Card>
 
-              {business.shariah_compliance_certificate && (
-                <Card>
+              {business.shariah_compliance_certificate && <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Shield className="w-5 h-5 text-success" />
@@ -235,8 +200,7 @@ export default function BusinessDetail() {
                       This business has been verified for Shariah compliance. Certificate: {business.shariah_compliance_certificate}
                     </p>
                   </CardContent>
-                </Card>
-              )}
+                </Card>}
 
               <Card>
                 <CardHeader>
@@ -251,12 +215,10 @@ export default function BusinessDetail() {
                       <span className="text-muted-foreground">Listed On</span>
                       <span>{formatDate(business.created_at)}</span>
                     </div>
-                    {business.approved_at && (
-                      <div className="flex justify-between">
+                    {business.approved_at && <div className="flex justify-between">
                         <span className="text-muted-foreground">Approved On</span>
                         <span>{formatDate(business.approved_at)}</span>
-                      </div>
-                    )}
+                      </div>}
                   </div>
                 </CardContent>
               </Card>
@@ -275,10 +237,9 @@ export default function BusinessDetail() {
                       <span className="font-medium">{fundingProgress.toFixed(0)}%</span>
                     </div>
                     <div className="h-3 bg-muted rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-primary rounded-full transition-all"
-                        style={{ width: `${Math.min(fundingProgress, 100)}%` }}
-                      />
+                      <div className="h-full bg-primary rounded-full transition-all" style={{
+                      width: `${Math.min(fundingProgress, 100)}%`
+                    }} />
                     </div>
                   </div>
 
@@ -306,9 +267,7 @@ export default function BusinessDetail() {
                     </div>
                   </div>
 
-                  {user ? (
-                    business.status === "active" && availableUnits > 0 ? (
-                      <Dialog open={investDialogOpen} onOpenChange={setInvestDialogOpen}>
+                  {user ? business.status === "active" && availableUnits > 0 ? <Dialog open={investDialogOpen} onOpenChange={setInvestDialogOpen}>
                         <DialogTrigger asChild>
                           <Button variant="gradient" className="w-full">
                             Invest Now
@@ -325,14 +284,7 @@ export default function BusinessDetail() {
                           <div className="space-y-4 py-4">
                             <div className="space-y-2">
                               <Label htmlFor="units">Number of Units</Label>
-                              <Input
-                                id="units"
-                                type="number"
-                                min={1}
-                                max={availableUnits}
-                                value={units}
-                                onChange={(e) => setUnits(Math.max(1, Math.min(availableUnits, parseInt(e.target.value) || 1)))}
-                              />
+                              <Input id="units" type="number" min={1} max={availableUnits} value={units} onChange={e => setUnits(Math.max(1, Math.min(availableUnits, parseInt(e.target.value) || 1)))} />
                               <p className="text-xs text-muted-foreground">
                                 Maximum available: {formatNumber(availableUnits)} units
                               </p>
@@ -364,51 +316,37 @@ export default function BusinessDetail() {
                             </div>
 
                             {/* Insufficient Balance Warning */}
-                            {totalCost > walletBalance && (
-                              <div className="flex items-start gap-2 text-destructive bg-destructive/10 p-3 rounded-lg">
+                            {totalCost > walletBalance && <div className="flex items-start gap-2 text-destructive bg-destructive/10 p-3 rounded-lg">
                                 <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
                                 <p className="text-sm">
                                   Insufficient wallet balance. You need {formatCurrency(totalCost - walletBalance)} more to complete this investment.
                                   <Link to="/dashboard" className="underline ml-1">Add funds</Link>
                                 </p>
-                              </div>
-                            )}
+                              </div>}
 
-                            {profile?.kyc_status !== "verified" && (
-                              <div className="flex items-start gap-2 text-warning bg-warning/10 p-3 rounded-lg">
+                            {profile?.kyc_status !== "verified" && <div className="flex items-start gap-2 text-warning bg-warning/10 p-3 rounded-lg">
                                 <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
                                 <p className="text-sm">
                                   You need to complete KYC verification before investing. 
                                   <Link to="/dashboard" className="underline ml-1">Complete KYC</Link>
                                 </p>
-                              </div>
-                            )}
+                              </div>}
                           </div>
 
                           <DialogFooter>
                             <Button variant="outline" onClick={() => setInvestDialogOpen(false)}>
                               Cancel
                             </Button>
-                            <Button 
-                              variant="gradient" 
-                              onClick={handleInvest}
-                              disabled={isInvesting || profile?.kyc_status !== "verified" || hasInsufficientBalance}
-                            >
+                            <Button variant="gradient" onClick={handleInvest} disabled={isInvesting || profile?.kyc_status !== "verified" || hasInsufficientBalance}>
                               {isInvesting ? "Processing..." : "Confirm Investment"}
                             </Button>
                           </DialogFooter>
                         </DialogContent>
-                      </Dialog>
-                    ) : (
-                      <Button disabled className="w-full">
+                      </Dialog> : <Button disabled className="w-full">
                         {business.status === "funded" ? "Fully Funded" : "No Units Available"}
-                      </Button>
-                    )
-                  ) : (
-                    <Button variant="gradient" className="w-full" onClick={() => navigate("/auth")}>
+                      </Button> : <Button variant="gradient" className="w-full" onClick={() => navigate("/auth")}>
                       Sign In to Invest
-                    </Button>
-                  )}
+                    </Button>}
                 </CardContent>
               </Card>
 
@@ -422,6 +360,5 @@ export default function BusinessDetail() {
       </main>
 
       <Footer />
-    </div>
-  );
+    </div>;
 }
