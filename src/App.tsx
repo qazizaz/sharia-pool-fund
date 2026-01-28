@@ -24,6 +24,7 @@ import AdminUsers from "./pages/dashboard/admin/AdminUsers";
 import AdminBusinesses from "./pages/dashboard/admin/AdminBusinesses";
 import AdminSettings from "./pages/dashboard/admin/AdminSettings";
 import AdminFunds from "./pages/dashboard/admin/AdminFunds";
+import AdminOverview from "./pages/dashboard/admin/AdminOverview";
 
 const queryClient = new QueryClient();
 
@@ -49,6 +50,7 @@ const App = () => (
             <Route path="/dashboard/my-business" element={<MyBusiness />} />
 
             {/* Admin Routes */}
+            <Route path="/dashboard/admin" element={<AdminOverview />} />
             <Route path="/dashboard/admin/users" element={<AdminUsers />} />
             <Route path="/dashboard/admin/businesses" element={<AdminBusinesses />} />
             <Route path="/dashboard/admin/funds" element={<AdminFunds />} />
