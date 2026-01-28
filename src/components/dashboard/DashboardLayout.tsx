@@ -36,6 +36,7 @@ const navItems: NavItem[] = [
   { href: "/dashboard/investments", label: "My Investments", icon: <TrendingUp className="w-5 h-5" />, roles: ["investor"] },
   { href: "/dashboard/transactions", label: "Transactions", icon: <FileText className="w-5 h-5" />, roles: ["investor"] },
   { href: "/dashboard/my-business", label: "My Business", icon: <Building2 className="w-5 h-5" />, roles: ["business_owner"] },
+  { href: "/dashboard/admin", label: "Admin Overview", icon: <Shield className="w-5 h-5" />, roles: ["admin"] },
   { href: "/dashboard/admin/users", label: "Users", icon: <Users className="w-5 h-5" />, roles: ["admin"] },
   { href: "/dashboard/admin/businesses", label: "Businesses", icon: <Building2 className="w-5 h-5" />, roles: ["admin"] },
   { href: "/dashboard/admin/funds", label: "Fund Management", icon: <Wallet className="w-5 h-5" />, roles: ["admin"] },
