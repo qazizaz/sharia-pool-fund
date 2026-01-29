@@ -25,6 +25,7 @@ import AdminBusinesses from "./pages/dashboard/admin/AdminBusinesses";
 import AdminSettings from "./pages/dashboard/admin/AdminSettings";
 import AdminFunds from "./pages/dashboard/admin/AdminFunds";
 import AdminOverview from "./pages/dashboard/admin/AdminOverview";
+import AdminProfitDistribution from "./pages/dashboard/admin/AdminProfitDistribution";
 
 const queryClient = new QueryClient();
 
@@ -54,6 +55,7 @@ const App = () => (
             <Route path="/dashboard/admin/users" element={<AdminUsers />} />
             <Route path="/dashboard/admin/businesses" element={<AdminBusinesses />} />
             <Route path="/dashboard/admin/funds" element={<AdminFunds />} />
+            <Route path="/dashboard/admin/profits" element={<AdminProfitDistribution />} />
             <Route path="/dashboard/admin/settings" element={<AdminSettings />} />
 
             {/* 404 */}
