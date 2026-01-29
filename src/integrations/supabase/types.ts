@@ -521,6 +521,10 @@ export type Database = {
         }
         Returns: string
       }
+      process_profit_distribution_atomic: {
+        Args: { p_admin_user_id: string; p_profit_distribution_id: string }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "admin" | "business_owner" | "investor"
