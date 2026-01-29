@@ -14,6 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Building2, Users, TrendingUp, Plus } from "lucide-react";
 import { formatCurrency, formatNumber, formatDate } from "@/lib/constants";
 import { toast } from "sonner";
+import { handleError } from "@/lib/error-handler";
 import {
   Dialog,
   DialogContent,
@@ -112,7 +113,7 @@ export default function MyBusiness() {
       queryClient.invalidateQueries({ queryKey: ["my-business"] });
     },
     onError: (error) => {
-      toast.error("Failed to create business: " + error.message);
+      toast.error(handleError(error, "Create Business"));
     },
   });
 

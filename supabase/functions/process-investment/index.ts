@@ -11,6 +11,12 @@ interface InvestmentRequest {
   units: number;
 }
 
+// UUID validation regex
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+// Maximum units per single transaction to prevent DoS/overflow attacks
+const MAX_UNITS_PER_TRANSACTION = 10000;
+
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
@@ -50,12 +56,62 @@ serve(async (req) => {
     const userId = user.id;
 
     // Parse request body
-    const { business_profile_id, units }: InvestmentRequest = await req.json();
-
-    // Validate input
-    if (!business_profile_id || !units || units < 1) {
+    let requestBody: InvestmentRequest;
+    try {
+      requestBody = await req.json();
+    } catch {
       return new Response(
-        JSON.stringify({ error: "Invalid request: business_profile_id and units (>= 1) are required" }),
+        JSON.stringify({ error: "Invalid JSON in request body" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { business_profile_id, units } = requestBody;
+
+    // ============ COMPREHENSIVE INPUT VALIDATION ============
+    
+    // Validate business_profile_id exists and is a valid UUID
+    if (!business_profile_id || typeof business_profile_id !== "string") {
+      return new Response(
+        JSON.stringify({ error: "Business ID is required" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (!UUID_REGEX.test(business_profile_id)) {
+      return new Response(
+        JSON.stringify({ error: "Invalid business ID format" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Validate units is a positive integer within acceptable range
+    if (units === undefined || units === null || typeof units !== "number") {
+      return new Response(
+        JSON.stringify({ error: "Units must be a number" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (!Number.isInteger(units)) {
+      return new Response(
+        JSON.stringify({ error: "Units must be a whole number (no decimals)" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (units < 1) {
+      return new Response(
+        JSON.stringify({ error: "Units must be at least 1" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (units > MAX_UNITS_PER_TRANSACTION) {
+      return new Response(
+        JSON.stringify({ 
+          error: `Units cannot exceed ${MAX_UNITS_PER_TRANSACTION} per transaction` 
+        }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -177,8 +233,9 @@ serve(async (req) => {
 
     if (txError) {
       console.error("Transaction error:", txError);
+      // Return generic error message to prevent information leakage
       return new Response(
-        JSON.stringify({ error: txError.message || "Transaction failed" }),
+        JSON.stringify({ error: "Unable to process investment. Please try again or contact support." }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
