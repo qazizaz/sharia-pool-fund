@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Users, Search, Shield, UserCheck, UserX } from "lucide-react";
 import { formatDate } from "@/lib/constants";
 import { toast } from "sonner";
+import { handleError } from "@/lib/error-handler";
 import {
   Select,
   SelectContent,
@@ -75,7 +76,7 @@ export default function AdminUsers() {
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
     },
     onError: (error) => {
-      toast.error("Failed to update: " + error.message);
+      toast.error(handleError(error, "KYC Update"));
     },
   });
 
@@ -93,7 +94,7 @@ export default function AdminUsers() {
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
     },
     onError: (error) => {
-      toast.error("Failed to update: " + error.message);
+      toast.error(handleError(error, "Role Update"));
     },
   });
 

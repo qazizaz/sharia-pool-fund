@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Building2, Search, Check, X, Eye } from "lucide-react";
 import { formatCurrency, formatDate, formatNumber } from "@/lib/constants";
 import { toast } from "sonner";
+import { handleError } from "@/lib/error-handler";
 import { Link } from "react-router-dom";
 import {
   Select,
@@ -72,7 +73,7 @@ export default function AdminBusinesses() {
       queryClient.invalidateQueries({ queryKey: ["admin-businesses"] });
     },
     onError: (error) => {
-      toast.error("Failed to update: " + error.message);
+      toast.error(handleError(error, "Business Update"));
     },
   });
 

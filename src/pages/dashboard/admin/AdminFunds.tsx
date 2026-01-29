@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/constants";
 import { toast } from "sonner";
+import { handleError } from "@/lib/error-handler";
 import {
   Dialog,
   DialogContent,
@@ -140,7 +141,7 @@ export default function AdminFunds() {
       resetForm();
     },
     onError: (error) => {
-      toast.error("Failed to add funds: " + error.message);
+      toast.error(handleError(error, "Add Funds"));
     },
   });
 
